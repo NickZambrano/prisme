@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Android 14+ : Prisme peut installer ses propres mises à jour sans fenêtre de confirmation. -->
+    <uses-permission android:name="android.permission.UPDATE_PACKAGES_WITHOUT_USER_ACTION" />
+    <!-- Mode nuit (compression audio sur la session du lecteur). -->
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Recherche vocale dans Prisme (micro de la télécommande, demandé au premier usage). -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <!-- Onglet « Fichiers » (option) : vidéos de la mémoire et des clés USB, demandé au premier usage.
+         Pas de MANAGE_EXTERNAL_STORAGE : les supports illisibles passent par le sélecteur de dossiers d'Android. -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <!-- Rangée « Continuer à regarder » de l'accueil TV (inutile pour Watch Next en API 26+, sans risque). -->
+    <uses-permission android:name="com.android.providers.tv.permission.WRITE_EPG_DATA" />
+    <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+
+    <!-- Applis de replay officielles (raccourcis sur l'accueil) : visibilité Android 11+. -->
+    <queries>
+        <package android:name="fr.tf1.mytf1" />
+        <package android:name="fr.m6.m6replay" />
+        <package android:name="fr.francetv.pluzz" />
+        <package android:name="tv.arte.plus7" />
+        <package android:name="com.canal.android.canal" />
+        <package android:name="net.oqee.androidtv.store" />
+    </queries>
+
+    <application
+        android:allowBackup="false"
+        android:fullBackupContent="@xml/backup_rules"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:banner="@drawable/banner"
+        android:icon="@drawable/ic_launcher"
+        android:label="Prisme"
+        android:roundIcon="@drawable/ic_launcher"
+        android:resizeableActivity="true"
+        android:largeHeap="true"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.FluxFR"
+        android:usesCleartextTraffic="true">
+
+        <!-- Type de build (« personal » / « public ») : lu dans un APK reçu avant de l'installer (Updater). -->
+        <meta-data android:name="prisme.flavour" android:value="${prismeFlavour}" />
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="unspecified"
+            android:resizeableActivity="true"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+            <!-- Liens profonds : prisme://play?key=…&profile=…, prisme://movie/<id>, prisme://series/<id> -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="prisme" android:host="play" />
+                <data android:scheme="prisme" android:host="movie" />
+                <data android:scheme="prisme" android:host="series" />
+                <data android:scheme="prisme" android:host="search" />
+            </intent-filter>
+            <!-- Recherche (globale, vocale, Assistant) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.google.android.gms.actions.SEARCH_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="android.app.searchable" android:resource="@xml/searchable" />
+        </activity>
+
+        <provider
+            android:name=".tvhome.SearchSuggestProvider"
+            android:authorities="com.fluxfr.tv.search"
+            android:exported="true" />
+
+        <receiver
+            android:name=".tvhome.WatchNextReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.media.tv.action.INITIALIZE_PROGRAMS" />
+                <action android:name="android.media.tv.action.WATCH_NEXT_PROGRAM_BROWSABLE_DISABLED" />
+            </intent-filter>
+        </receiver>
+
+        <activity
+            android:name=".player.PlayerActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:screenOrientation="sensorLandscape"
+            android:resizeableActivity="true"
+            android:theme="@style/Theme.FluxFR.Player"
+            android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode" />
+    </application>
+</manifest>

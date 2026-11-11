@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Icône Prisme : « play » en trois facettes sur fond nuit. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+    <path android:fillColor="#0A0C16" android:pathData="M24,0a24,24 0 1,1 0,48a24,24 0 1,1 0,-48z" />
+    <path android:fillColor="#378ADD" android:pathData="M15,9 L38,24 L15,39Z" />
+    <path android:fillColor="#85B7EB" android:pathData="M15,9 L38,24 L23.7,24Z" />
+    <path android:fillColor="#7F77DD" android:pathData="M15,39 L38,24 L23.7,24Z" />
+</vector>

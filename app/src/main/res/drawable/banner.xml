@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bannière Google TV (320x180) : prisme + « PRISME » tracé en lettres géométriques. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp" android:height="180dp"
+    android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#0A0C16" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#378ADD" android:pathData="M58,58 L112,90 L58,122Z" />
+    <path android:fillColor="#85B7EB" android:pathData="M58,58 L112,90 L78.5,90Z" />
+    <path android:fillColor="#7F77DD" android:pathData="M58,122 L112,90 L78.5,90Z" />
+    <group android:translateX="134" android:translateY="76">
+        <path android:strokeColor="#E6F1FB" android:strokeWidth="3.2" android:strokeLineCap="round" android:strokeLineJoin="round"
+            android:pathData="M0,28 V0 H11 A7,7 0 0 1 11,14 H0
+                              M24,28 V0 H35 A7,7 0 0 1 35,14 H24 M33,14 L41,28
+                              M53,0 V28
+                              M80,4 Q77,0 72,0 Q65,0 65,7 Q65,13 72,14 Q80,15 80,21 Q80,28 72,28 Q67,28 64,24
+                              M92,28 V0 L102,16 L112,0 V28
+                              M138,0 H124 V28 H138 M124,14 H135" />
+    </group>
+</vector>

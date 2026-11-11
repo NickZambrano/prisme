@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Premier plan de l'icône adaptative (téléphones Android 8+) : le « play » en trois facettes,
+     centré dans la zone sûre de 66 dp (sur 108 dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#378ADD" android:pathData="M42,33 L76,54 L42,75Z" />
+    <path android:fillColor="#85B7EB" android:pathData="M42,33 L76,54 L55.6,54Z" />
+    <path android:fillColor="#7F77DD" android:pathData="M42,75 L76,54 L55.6,54Z" />
+</vector>

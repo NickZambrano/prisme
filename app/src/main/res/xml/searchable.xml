@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Recherche globale / vocale de Google TV : suggestions fournies par SearchSuggestProvider. -->
+<searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/search_label"
+    android:hint="@string/search_hint"
+    android:searchSettingsDescription="@string/search_hint"
+    android:includeInGlobalSearch="true"
+    android:queryAfterZeroResults="true"
+    android:searchSuggestAuthority="com.fluxfr.tv.search"
+    android:searchSuggestSelection=" ?"
+    android:searchSuggestIntentAction="android.intent.action.VIEW"
+    android:searchSuggestThreshold="2"
+    android:voiceSearchMode="showVoiceSearchButton|launchRecognizer" />

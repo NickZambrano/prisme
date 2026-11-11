@@ -1,0 +1,6 @@
+secrets.properties
+local.properties
+.gradle/
+build/
+*.apk
+.kotlin/

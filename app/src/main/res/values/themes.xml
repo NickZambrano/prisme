@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.FluxFR" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:colorAccent">#3D7BFF</item>
+    </style>
+    <style name="Theme.FluxFR.Player">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:windowFullscreen">true</item>
+    </style>
+    <color name="bg">#0E0F13</color>
+    <color name="launcher_bg">#0A0C16</color>
+</resources>

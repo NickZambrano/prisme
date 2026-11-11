@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prisme · Exporter Prime Video</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#0E0F13;color:#fff;margin:0 auto;padding:32px 24px;max-width:640px;line-height:1.5}
+h1{margin:0 0 4px;font-size:28px}h2{margin:0 0 20px;font-size:20px;font-weight:600}
+p,li{color:#A0A6B4}b{color:#fff}
+ol{padding-left:22px}li{margin:10px 0}
+.card{margin:20px 0;padding:18px 20px;border-radius:12px;background:#15171E}
+.bm{display:inline-block;margin:8px 0;padding:12px 20px;border-radius:10px;background:#3D7BFF;color:#fff;font-weight:600;
+text-decoration:none;cursor:grab;font-size:17px}
+.bm:active{cursor:grabbing}
+button{padding:10px 16px;border:0;border-radius:8px;background:#2A2E3A;color:#fff;font-size:15px;cursor:pointer}
+button:hover{background:#353a49}
+textarea{width:100%;box-sizing:border-box;height:72px;margin-top:10px;padding:8px;border-radius:8px;border:1px solid #2A2E3A;
+background:#1B1E26;color:#A0A6B4;font:12px monospace;display:none}
+#ok{color:#4CD07D;margin-left:10px}
+small{color:#A0A6B4}
+</style></head><body>
+<h1>Prisme</h1>
+<h2>Exporter l'historique Prime Video</h2>
+<p>Prime Video ne propose pas de téléchargement de l'historique. Ce bouton à ajouter aux favoris de ton
+navigateur (sur ordinateur) le lit sur la page « Historique de visionnage » et en fait un fichier pour Prisme.
+Tout se passe dans ton navigateur : rien n'est envoyé ailleurs.</p>
+<div class="card">
+<ol>
+<li>Affiche la barre des favoris (<b>Ctrl+Maj+B</b>, ou <b>Cmd+Maj+B</b> sur Mac).</li>
+<li>Fais glisser ce bouton dans la barre des favoris :<br>
+<a class="bm" id="bm" href="javascript:void%20%28async%20%28%29%20%3D%3E%20%7B%20const%20sleep%20%3D%20%28ms%29%20%3D%3E%20new%20Promise%28%28r%29%20%3D%3E%20setTimeout%28r%2C%20ms%29%29%3B%20const%20items%20%3D%20%28%29%20%3D%3E%20document.querySelectorAll%28%27%5Bdata-testid%3D%22activity-history-item%22%5D%27%29%3B%20const%20banner%20%3D%20document.createElement%28%27div%27%29%3B%20banner.style.cssText%20%3D%20%27position%3Afixed%3Bz-index%3A2147483647%3Btop%3A16px%3Bright%3A16px%3Bpadding%3A14px%2018px%3Bborder-radius%3A12px%3B%27%20%2B%20%27background%3A%23101218%3Bcolor%3A%23fff%3Bfont%3A15px%2F1.4%20system-ui%2Csans-serif%3Bbox-shadow%3A0%206px%2024px%20rgba%280%2C0%2C0%2C.4%29%3Bmax-width%3A360px%27%3B%20const%20say%20%3D%20%28t%29%20%3D%3E%20%7B%20banner.textContent%20%3D%20%27Prisme%20%C2%B7%20%27%20%2B%20t%3B%20%7D%3B%20document.body.appendChild%28banner%29%3B%20if%20%28%21items%28%29.length%29%20%7B%20say%28%22Ouvre%20d%27abord%20la%20page%20%C2%AB%20Historique%20de%20visionnage%20%C2%BB%20de%20Prime%20Video%2C%20puis%20relance.%22%29%3B%20return%3B%20%7D%20let%20last%20%3D%20-1%2C%20stable%20%3D%200%3B%20while%20%28stable%20%3C%203%29%20%7B%20window.scrollTo%280%2C%20document.body.scrollHeight%29%3B%20await%20sleep%281200%29%3B%20const%20n%20%3D%20items%28%29.length%3B%20say%28%27Chargement%20de%20l%E2%80%99historique%E2%80%A6%20%27%20%2B%20n%20%2B%20%27%20titres%27%29%3B%20if%20%28n%20%3D%3D%3D%20last%29%20stable%2B%2B%3B%20else%20%7B%20stable%20%3D%200%3B%20last%20%3D%20n%3B%20%7D%20%7D%20const%20blocks%20%3D%20%5B...document.querySelectorAll%28%27%5Bdata-testid%5E%3D%22wh-episodes-watched-%22%5D%27%29%5D%3B%20for%20%28let%20i%20%3D%200%3B%20i%20%3C%20blocks.length%3B%20i%2B%2B%29%20%7B%20say%28%27Lecture%20des%20%C3%A9pisodes%E2%80%A6%20%27%20%2B%20%28i%20%2B%201%29%20%2B%20%27%20%2F%20%27%20%2B%20blocks.length%29%3B%20const%20b%20%3D%20blocks%5Bi%5D%3B%20const%20trigger%20%3D%20b.querySelector%28%27button%2C%20label%2C%20%5Brole%3D%22button%22%5D%2C%20summary%27%29%20%7C%7C%20b%3B%20try%20%7B%20trigger.click%28%29%3B%20%7D%20catch%20%28e%29%20%7B%7D%20await%20sleep%28350%29%3B%20%7D%20await%20sleep%28800%29%3B%20const%20rows%20%3D%20%5B%5D%3B%20const%20iso%20%3D%20%28txt%29%20%3D%3E%20%7B%20const%20d%20%3D%20new%20Date%28txt%20%2B%20%27%2012%3A00%27%29%3B%20if%20%28isNaN%28d%29%29%20return%20%27%27%3B%20return%20d.getFullYear%28%29%20%2B%20%27-%27%20%2B%20String%28d.getMonth%28%29%20%2B%201%29.padStart%282%2C%20%270%27%29%20%2B%20%27-%27%20%2B%20String%28d.getDate%28%29%29.padStart%282%2C%20%270%27%29%3B%20%7D%3B%20const%20seasonRe%20%3D%20%2F%5E%28.*%3F%29%5Cs*%5B-%E2%80%93%3A%5D%5Cs*%28%3F%3ASeason%7CSaison%7CStaffel%7CTemporada%7CStagione%29%5Cs*%28%5Cd%2B%29%5Cs*%24%2Fi%3B%20const%20epRe%20%3D%20%2F%28%3F%3AEpisode%7C%C3%89pisode%7CEp%5C.%3F%7CE%29%5Cs*%28%5Cd%2B%29%5Cs*%28%3F%3A%5B%3A%5C-%E2%80%93.%5D%5Cs*%28.*%29%29%3F%24%2Fi%3B%20document.querySelectorAll%28%27%5Bdata-testid%5E%3D%22wh-date-%22%5D%27%29.forEach%28%28dateEl%29%20%3D%3E%20%7B%20const%20date%20%3D%20iso%28dateEl.textContent.trim%28%29%29%3B%20const%20list%20%3D%20dateEl.parentElement%20%26%26%20dateEl.parentElement.querySelector%28%27ul%27%29%3B%20if%20%28%21date%20%7C%7C%20%21list%29%20return%3B%20list.querySelectorAll%28%27%5Bdata-testid%3D%22activity-history-item%22%5D%27%29.forEach%28%28it%29%20%3D%3E%20%7B%20const%20titleEl%20%3D%20it.querySelector%28%27a%3Anot%28%3Ahas%28img%29%29%27%29%20%7C%7C%20it.querySelector%28%27div%20a%27%29%3B%20const%20title%20%3D%20%28titleEl%20%3F%20titleEl.textContent%20%3A%20%27%27%29.trim%28%29%3B%20if%20%28%21title%29%20return%3B%20const%20eps%20%3D%20it.querySelector%28%27%5Bdata-testid%5E%3D%22wh-episodes-watched-%22%5D%27%29%3B%20if%20%28%21eps%29%20%7B%20rows.push%28%5Btitle%2C%20date%2C%20%27movie%27%2C%20%27%27%2C%20%27%27%2C%20%27%27%5D%29%3B%20return%3B%20%7D%20const%20m%20%3D%20title.match%28seasonRe%29%3B%20const%20show%20%3D%20m%20%3F%20m%5B1%5D.trim%28%29%20%3A%20title%3B%20const%20season%20%3D%20m%20%3F%20m%5B2%5D%20%3A%20%27%27%3B%20const%20lines%20%3D%20%5B...eps.querySelectorAll%28%27li%2C%20%5Brole%3D%22option%22%5D%2C%20p%2C%20span%2C%20div%27%29%5D%20.filter%28%28e%29%20%3D%3E%20%21e.children.length%29%20.map%28%28e%29%20%3D%3E%20e.textContent.trim%28%29%29%20.filter%28%28t%29%20%3D%3E%20t%20%26%26%20%21%2F%5Eepisodes%20watched%24%2Fi.test%28t%29%20%26%26%20%21%2F%5E%C3%A9pisodes%20regard%C3%A9s%24%2Fi.test%28t%29%29%3B%20const%20seen%20%3D%20new%20Set%28%29%3B%20let%20found%20%3D%200%3B%20lines.forEach%28%28t%29%20%3D%3E%20%7B%20const%20e%20%3D%20t.match%28epRe%29%3B%20if%20%28%21e%20%7C%7C%20seen.has%28e%5B1%5D%29%29%20return%3B%20seen.add%28e%5B1%5D%29%3B%20found%2B%2B%3B%20rows.push%28%5Bshow%2C%20date%2C%20%27episode%27%2C%20season%2C%20e%5B1%5D%2C%20%28e%5B2%5D%20%7C%7C%20%27%27%29.trim%28%29%5D%29%3B%20%7D%29%3B%20if%20%28%21found%29%20rows.push%28%5Bshow%2C%20date%2C%20%27season%27%2C%20season%2C%20%27%27%2C%20%27%27%5D%29%3B%20%7D%29%3B%20%7D%29%3B%20const%20q%20%3D%20%28v%29%20%3D%3E%20%27%22%27%20%2B%20String%28v%29.replace%28%2F%22%2Fg%2C%20%27%22%22%27%29%20%2B%20%27%22%27%3B%20const%20csv%20%3D%20%27Title%2CDate%2CType%2CSeason%2CEpisode%2CEpisodeTitle%5Cn%27%20%2B%20rows.map%28%28r%29%20%3D%3E%20r.map%28q%29.join%28%27%2C%27%29%29.join%28%27%5Cn%27%29%3B%20const%20a%20%3D%20document.createElement%28%27a%27%29%3B%20a.href%20%3D%20URL.createObjectURL%28new%20Blob%28%5B%27%EF%BB%BF%27%20%2B%20csv%5D%2C%20%7B%20type%3A%20%27text%2Fcsv%3Bcharset%3Dutf-8%27%20%7D%29%29%3B%20a.download%20%3D%20%27PrimeVideoViewingHistory.csv%27%3B%20document.body.appendChild%28a%29%3B%20a.click%28%29%3B%20const%20films%20%3D%20rows.filter%28%28r%29%20%3D%3E%20r%5B2%5D%20%3D%3D%3D%20%27movie%27%29.length%3B%20const%20episodes%20%3D%20rows.filter%28%28r%29%20%3D%3E%20r%5B2%5D%20%3D%3D%3D%20%27episode%27%29.length%3B%20const%20seasons%20%3D%20rows.filter%28%28r%29%20%3D%3E%20r%5B2%5D%20%3D%3D%3D%20%27season%27%29.length%3B%20say%28%27Termin%C3%A9%20%3A%20%27%20%2B%20films%20%2B%20%27%20films%2C%20%27%20%2B%20episodes%20%2B%20%27%20%C3%A9pisodes%27%20%2B%20%28seasons%20%3F%20%27%2C%20%27%20%2B%20seasons%20%2B%20%27%20saisons%20sans%20d%C3%A9tail%27%20%3A%20%27%27%29%20%2B%20%27.%20Fichier%20%C2%AB%20PrimeVideoViewingHistory.csv%20%C2%BB%20t%C3%A9l%C3%A9charg%C3%A9%20%E2%80%94%20importe-le%20dans%20Prisme.%27%29%3B%20%7D%29%28%29%3B" onclick="alert('Fais glisser ce bouton dans la barre des favoris, puis clique dessus sur primevideo.com.');return false;">Exporter Prime Video</a></li>
+<li>Sur <b>primevideo.com</b> (connecté à ton compte) : <b>Paramètres → Historique de visionnage</b>.</li>
+<li>Clique sur le favori <b>« Exporter Prime Video »</b> : la page défile toute seule, puis le fichier
+<b>PrimeVideoViewingHistory.csv</b> est téléchargé.</li>
+<li>Envoie ce fichier à la TV : Réglages → ton profil → <b>Importer un historique (Netflix ou Prime Video)</b>,
+puis la page indiquée par la TV.</li>
+</ol>
+</div>
+<div class="card">
+<p><b>Impossible de faire glisser le bouton ?</b> Copie le code, crée un favori (sur n'importe quelle page),
+modifie-le : nomme-le « Exporter Prime Video » et colle le code dans le champ <b>URL</b> (adresse).</p>
+<button type="button" id="cp">Copier le code</button><span id="ok"></span>
+<textarea id="code" readonly></textarea>
+</div>
+<p><small>Le bouton ne fonctionne que sur la page « Historique de visionnage » de Prime Video, dans un navigateur d'ordinateur.</small></p>
+<script>
+document.getElementById('cp').onclick=function(){
+var code=document.getElementById('bm').getAttribute('href'),ta=document.getElementById('code'),ok=document.getElementById('ok');
+ta.value=code;ta.style.display='block';ta.focus();ta.select();
+function done(){ok.textContent='Code copié.';}
+function manual(){ok.textContent='Sélectionne le code ci-dessous et copie-le (Ctrl+C).';}
+var copied=false;try{copied=document.execCommand('copy');}catch(e){}
+if(copied){done();return;}
+if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(code).then(done,manual);}else manual();
+};
+</script>
+</body></html>
