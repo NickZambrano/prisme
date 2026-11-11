@@ -53,6 +53,9 @@ object RemoteUpdate {
     val enabled: Boolean get() = BuildConfig.UPDATE_MANIFEST_URL.isNotBlank()
 
     private const val INTERVAL_MS = 6 * 3600_000L
+    /** Au retour dans l'appli : nouvelle vérification si la précédente date de plus de 30 min. */
+    private const val RECHECK_MS = 30 * 60_000L
+    @Volatile private var lastCheck = 0L
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     @Volatile private var started = false
     @Volatile private var visible = 0
@@ -65,9 +68,19 @@ object RemoteUpdate {
     fun start(activity: Activity) {
         if (!enabled || started) return
         started = true
+        // La 1re vérification est faite par la boucle ci-dessous (après le chargement de l'accueil).
+        lastCheck = System.currentTimeMillis()
         val app = activity.application
         app.registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityStarted(a: Activity) { visible++ }
+            override fun onActivityStarted(a: Activity) {
+                // Retour dans Prisme (le processus est souvent resté en mémoire) : nouvelle vérification si la
+                // dernière date de plus de 30 min — sinon une version publiée entre-temps n'apparaissait qu'au
+                // bout de 6 h ou après un redémarrage complet.
+                if (visible == 0 && System.currentTimeMillis() - lastCheck > RECHECK_MS) {
+                    scope.launch { runCatching { checkAndPrepare(app) } }
+                }
+                visible++
+            }
             override fun onActivityStopped(a: Activity) {
                 visible = (visible - 1).coerceAtLeast(0)
                 // Prisme quitte l'écran (TV en veille, autre appli) : moment idéal pour installer.
@@ -106,6 +119,7 @@ object RemoteUpdate {
      */
     suspend fun checkAndPrepare(ctx: Context): Outcome {
         val app = ctx.applicationContext
+        lastCheck = System.currentTimeMillis()
         val m = runCatching { fetchManifest() }.getOrNull() ?: return Outcome.FAILED
         if (!isNewer(m, BuildConfig.VERSION_CODE, BuildConfig.FLAVOUR)) return Outcome.UP_TO_DATE
         val info = UpdateInfo(m.versionCode, m.versionName, "Internet", m.apk, m.sha256)

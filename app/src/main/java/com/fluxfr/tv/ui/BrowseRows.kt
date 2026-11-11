@@ -504,7 +504,8 @@ internal class BrowseSpec<T>(
     val quality: (T) -> Quality,
     val hero: (T, String) -> Hero,
     val open: (T) -> Unit,
-    val longPress: ((T) -> Unit)?,
+    /** Menu d'actions d'une vignette (appui long), calculé à l'ouverture. */
+    val menu: ((T) -> List<CardAction>)?,
 )
 
 /**
@@ -639,7 +640,7 @@ private fun <T> BrowseSection(
                                             displayTitle(spec.name(t)), spec.poster(t), spec.quality(t),
                                             modifier = if (row.id == firstRowId && row.items.firstOrNull() == t) Modifier.focusRequester(firstCard) else Modifier,
                                             onClick = { spec.open(t) },
-                                            onLongClick = spec.longPress?.let { lp -> { lp(t) } },
+                                            menu = spec.menu?.let { mk -> { mk(t) } },
                                             progress = (row.progress ?: progress)(t),
                                             subtitle = row.subtitle?.invoke(t),
                                             badge = badge(t),
@@ -858,7 +859,13 @@ fun MoviesScreen(catalog: Catalog, onOpenMovie: (Movie) -> Unit) {
         )
     }
 
-    fun play(m: Movie) = PlayerSession.start(ctx, listOf(Playables.movie(m)), 0)
+    val movieMenu: (Movie) -> List<CardAction> = { m ->
+        movieActions(
+            ctx, m, progress[m.id],
+            onInfo = { onOpenMovie(m) },
+            play = { mode -> PlayerSession.start(ctx, listOf(Playables.movie(m)), 0, mode) },
+        )
+    }
     val hero: (Movie, String) -> Hero = { m, eyebrow ->
         val meta = VodMeta.get(VodMeta.movieKey(m.id))
         val resumable = progress[m.id]?.let { !it.finished && it.position > 10_000 } == true
@@ -883,7 +890,7 @@ fun MoviesScreen(catalog: Catalog, onOpenMovie: (Movie) -> Unit) {
         BrowseSpec<Movie>(
             "Films", FluxIcons.Movie, "film", HiddenCategories.MOVIE,
             key = { it.id }, name = { it.name }, poster = { it.poster }, quality = { it.quality },
-            hero = hero, open = onOpenMovie, longPress = { play(it) },
+            hero = hero, open = onOpenMovie, menu = movieMenu,
         )
     }
     // Bandeau rempli dès l'arrivée (avant tout focus, et sans attendre le calcul des rangées) : la même vignette
@@ -906,7 +913,7 @@ fun MoviesScreen(catalog: Catalog, onOpenMovie: (Movie) -> Unit) {
         GridPosterCard(
             m.name, m.poster, m.quality,
             onClick = { onOpenMovie(m) },
-            onLongClick = { play(m) },
+            menu = { movieMenu(m) },
             progress = fraction(m),
             onFocus = onFocus,
         )
@@ -992,7 +999,8 @@ fun SeriesScreen(catalog: Catalog, onOpenSeries: (Series) -> Unit) {
         BrowseSpec<Series>(
             "Séries", FluxIcons.Series, "série", HiddenCategories.SERIES,
             key = { it.id }, name = { it.name }, poster = { it.poster }, quality = { it.quality },
-            hero = hero, open = onOpenSeries, longPress = null,
+            hero = hero, open = onOpenSeries,
+            menu = { s -> seriesActions(ctx, s, onOpen = { onOpenSeries(s) }) },
         )
     }
     // Bandeau rempli dès l'arrivée (voir MoviesScreen).
@@ -1013,6 +1021,7 @@ fun SeriesScreen(catalog: Catalog, onOpenSeries: (Series) -> Unit) {
     ) { s, onFocus ->
         GridPosterCard(
             s.name, s.poster, s.quality, onClick = { onOpenSeries(s) },
+            menu = { seriesActions(ctx, s, onOpen = { onOpenSeries(s) }) },
             onFocus = onFocus,
             badge = badge(s),
         )

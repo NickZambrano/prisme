@@ -197,17 +197,22 @@ internal fun GridPosterCard(
     onLongClick: (() -> Unit)? = null,
     onFocus: (() -> Unit)? = null,
     minCell: Dp = 132.dp,
+    /** Menu d'actions (appui long) : voir [PosterCard]. Remplace [onLongClick] quand non nul. */
+    menu: (() -> List<CardAction>)? = null,
 ) {
     val title = displayTitle(name)
     var focused by remember { mutableStateOf(false) }
+    val isTv = LocalIsTv.current
+    val menuState = if (menu != null) rememberCardMenuState() else null
+    val longClick: (() -> Unit)? = if (menuState != null) remember(menuState, isTv) { { menuState.requestOpen(isTv) } } else onLongClick
     Column(modifier.revealOnFocus().fillMaxWidth()) {
         FocusSurface(
             onClick,
             Modifier.fillMaxWidth().aspectRatio(2f / 3f).onFocusChanged {
                 focused = it.isFocused
                 if (it.isFocused) onFocus?.invoke()
-            },
-            onLongClick = onLongClick,
+            }.cardMenuAnchor(menuState),
+            onLongClick = longClick,
             focusedScale = 1.08f,
         ) {
             if (image.isNullOrBlank()) {
@@ -233,6 +238,7 @@ internal fun GridPosterCard(
         }
         Spacer(Modifier.height(8.dp))
         CardTitle(title, focused)
+        if (menuState != null && menu != null) CardMenuPopup(menuState, title, menu)
     }
 }
 

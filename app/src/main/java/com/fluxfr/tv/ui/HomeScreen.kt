@@ -428,6 +428,43 @@ fun HomeScreen(
         image = s.movies.firstNotNullOfOrNull { it.poster }, quality = null, actionLabel = "Voir la saga",
     ) { openSaga = s }
 
+    // ---- Menus d'actions des vignettes (appui long) : listes calculées à l'ouverture du menu.
+    fun movieMenu(m: Movie, extra: List<CardAction> = emptyList()): () -> List<CardAction> = {
+        movieActions(
+            ctx, m, movieProgress[m.id],
+            onInfo = { onOpenMovie(m) },
+            play = { mode -> play(listOf(Playables.movie(m)), 0, mode) },
+            extra = extra,
+        )
+    }
+
+    fun seriesMenu(s: Series, extra: List<CardAction> = emptyList()): () -> List<CardAction> = {
+        seriesActions(ctx, s, onOpen = { onOpenSeries(s) }, extra = extra)
+    }
+
+    /** « Continuer à regarder » : film → reprendre / depuis le début / fiche ; épisode → la série ; puis retirer. */
+    fun resumeMenu(p: Progress): () -> List<CardAction> = {
+        buildList {
+            if (p.type == Progress.EPISODE && p.seriesId != null) {
+                add(CardAction("Continuer la série", FluxIcons.Play, navigates = true) { openProgress(p) })
+            } else {
+                val movie = catalog.movieById[p.itemId]
+                val item = movie?.let(Playables::movie) ?: Playables.fromProgress(p)
+                if (p.finished) {
+                    add(CardAction("Lecture", FluxIcons.Play, navigates = true) { play(listOf(item), 0, StartMode.ASK) })
+                } else {
+                    add(CardAction("Reprendre", FluxIcons.Play, navigates = true) { play(listOf(item), 0, StartMode.RESUME) })
+                    add(CardAction("Lire depuis le début", FluxIcons.Refresh, navigates = true) { play(listOf(item), 0, StartMode.FROM_START) })
+                }
+                if (movie != null) add(CardAction("Plus d'infos", FluxIcons.Info, navigates = true) { onOpenMovie(movie) })
+            }
+            add(CardAction("Retirer de Continuer à regarder", FluxIcons.Close, danger = true) {
+                store.remove(p)
+                shortToast(ctx, "« ${HomeRows.shownTitle(p.title)} » retiré de Continuer à regarder")
+            })
+        }
+    }
+
     val firstResumeKey = resume.firstOrNull()?.key
     val initial = remember(catalog, profile, firstResumeKey) {
         resume.firstOrNull()?.let(::progressFeature)
@@ -585,18 +622,19 @@ fun HomeScreen(
 
     /** Vignette d'une rangée mêlant films et séries (recommandations). */
     @Composable
-    fun MixedCard(e: ListEntry, eyebrow: String) {
+    fun MixedCard(e: ListEntry, eyebrow: String, extra: List<CardAction> = emptyList()) {
         when (e) {
             is ListEntry.M -> PosterCard(
                 e.m.name, e.m.poster, e.m.quality,
                 onClick = { onOpenMovie(e.m) },
-                onLongClick = { play(listOf(Playables.movie(e.m)), 0) },
+                menu = movieMenu(e.m, extra),
                 progress = movieProgress[e.m.id]?.takeUnless { it.finished }?.fraction,
                 onFocus = { focusedFeature = movieFeature(e.m, eyebrow) },
             )
             is ListEntry.S -> PosterCard(
                 e.s.name, e.s.poster, e.s.quality,
                 onClick = { onOpenSeries(e.s) },
+                menu = seriesMenu(e.s, extra),
                 onFocus = { focusedFeature = seriesFeature(e.s, eyebrow) },
                 badge = seriesBadge(e.s.id),
             )
@@ -614,7 +652,7 @@ fun HomeScreen(
                         progress = if (p.finished) null else p.fraction,
                         subtitle = if (p.type == Progress.EPISODE) (if (p.finished) "Épisode suivant" else p.subtitle) else null,
                         onClick = { openProgress(p) },
-                        onLongClick = { store.remove(p) },
+                        menu = resumeMenu(p),
                         onFocus = { focusedFeature = progressFeature(p) },
                         badge = if (p.type == Progress.EPISODE) seriesBadge(p.seriesId) else null,
                     )
@@ -630,7 +668,7 @@ fun HomeScreen(
                         PosterCard(
                             m.name, m.poster, m.quality,
                             onClick = { onOpenMovie(m) },
-                            onLongClick = { play(listOf(Playables.movie(m)), 0) },
+                            menu = movieMenu(m),
                             progress = movieProgress[m.id]?.takeUnless { it.finished }?.fraction,
                             onFocus = { focusedFeature = movieFeature(m, "Top 10 France · n°${i + 1}") },
                         )
@@ -641,6 +679,7 @@ fun HomeScreen(
                         PosterCard(
                             se.name, se.poster, se.quality,
                             onClick = { onOpenSeries(se) },
+                            menu = seriesMenu(se),
                             onFocus = { focusedFeature = seriesFeature(se, "Top 10 France · n°${i + 1}") },
                             badge = seriesBadge(se.id),
                         )
@@ -651,7 +690,7 @@ fun HomeScreen(
                     PosterCard(
                         m.name, m.poster, m.quality,
                         onClick = { onOpenMovie(m) },
-                        onLongClick = { play(listOf(Playables.movie(m)), 0) },
+                        menu = movieMenu(m),
                         progress = movieProgress[m.id]?.takeUnless { it.finished }?.fraction,
                         onFocus = { focusedFeature = movieFeature(m, "Tendances films") },
                     )
@@ -660,6 +699,7 @@ fun HomeScreen(
                     PosterCard(
                         s.name, s.poster, s.quality,
                         onClick = { onOpenSeries(s) },
+                        menu = seriesMenu(s),
                         onFocus = { focusedFeature = seriesFeature(s, "Tendances séries") },
                         badge = seriesBadge(s.id),
                     )
@@ -668,6 +708,7 @@ fun HomeScreen(
                     PosterCard(
                         s.name, s.poster, s.quality,
                         onClick = { onOpenSeries(s) },
+                        menu = seriesMenu(s),
                         onFocus = { focusedFeature = seriesFeature(s, "Nouvel épisode") },
                         badge = NEW_EPISODE_BADGE,
                     )
@@ -687,13 +728,14 @@ fun HomeScreen(
                         is ListEntry.M -> PosterCard(
                             e.m.name, e.m.poster, e.m.quality,
                             onClick = { onOpenMovie(e.m) },
-                            onLongClick = { play(listOf(Playables.movie(e.m)), 0) },
+                            menu = movieMenu(e.m),
                             progress = movieProgress[e.m.id]?.takeUnless { it.finished }?.fraction,
                             onFocus = { focusedFeature = movieFeature(e.m, "Ma liste") },
                         )
                         is ListEntry.S -> PosterCard(
                             e.s.name, e.s.poster, e.s.quality,
                             onClick = { onOpenSeries(e.s) },
+                            menu = seriesMenu(e.s),
                             onFocus = { focusedFeature = seriesFeature(e.s, "Ma liste") },
                             badge = seriesBadge(e.s.id),
                         )
@@ -726,7 +768,17 @@ fun HomeScreen(
                                 ).show()
                             }
                         },
-                    ) { e, _ -> MixedCard(e, title) }
+                    ) { e, _ ->
+                        MixedCard(
+                            e, title,
+                            extra = listOf(
+                                CardAction("Je n'ai pas regardé « $shown »", FluxIcons.Block) {
+                                    com.fluxfr.tv.data.RecoIgnore.add(ctx, profile, seed)
+                                    shortToast(ctx, "« $shown » ne servira plus à tes recommandations")
+                                },
+                            ),
+                        )
+                    }
                 }
                 // « Comédies pour toi » : genre préféré du profil.
                 for ((title, items) in recoRows.genres) {
@@ -815,7 +867,7 @@ fun HomeScreen(
                         s,
                         movieProgress = movieProgress,
                         onOpenMovie = onOpenMovie,
-                        onPlay = { m -> play(listOf(Playables.movie(m)), 0) },
+                        onPlay = { m, mode -> play(listOf(Playables.movie(m)), 0, mode) },
                     )
                 }
             }
@@ -838,6 +890,8 @@ fun HomeScreen(
                 .focusProperties { enter = { if (openSaga != null) FocusRequester.Cancel else FocusRequester.Default } }
                 .focusGroup()
         ) {
+            // ---- Nouvelle version : tout en haut, bien visible (▲ depuis le bouton de l'en-tête)
+            UpdateBanner(top = true)
             // ---- En-tête immersif
             HeroHeader(
                 feature = ::featuredNowValue,
@@ -845,7 +899,6 @@ fun HomeScreen(
                 onFocusChanged = { f -> heroFocused = f; if (f) onHeroFocus() },
             )
             if (catalogIncomplete) IncompleteNotice()
-            UpdateBanner()
 
             // ---- Rangées
             CompositionLocalProvider(LocalBringIntoViewSpec provides NoVerticalScrollSpec) {
@@ -867,7 +920,7 @@ fun HomeScreen(
                 s,
                 movieProgress = movieProgress,
                 onOpenMovie = onOpenMovie,
-                onPlay = { m -> play(listOf(Playables.movie(m)), 0) },
+                onPlay = { m, mode -> play(listOf(Playables.movie(m)), 0, mode) },
             )
         }
     }
@@ -895,8 +948,9 @@ private fun SagaPage(
     saga: Saga,
     movieProgress: Map<String, Progress>,
     onOpenMovie: (Movie) -> Unit,
-    onPlay: (Movie) -> Unit,
+    onPlay: (Movie, StartMode) -> Unit,
 ) {
+    val ctx = LocalContext.current
     val first = remember { FocusRequester() }
     var backdrop by remember(saga.key) { mutableStateOf(saga.movies.firstNotNullOfOrNull { it.poster }) }
     LaunchedEffect(saga.key) { runCatching { first.requestFocus() } }
@@ -932,7 +986,7 @@ private fun SagaPage(
                 PosterCard(
                     m.name, m.poster, m.quality,
                     onClick = { onOpenMovie(m) },
-                    onLongClick = { onPlay(m) },
+                    menu = { movieActions(ctx, m, movieProgress[m.id], onInfo = { onOpenMovie(m) }, play = { mode -> onPlay(m, mode) }) },
                     modifier = Modifier.fillMaxWidth().let { if (i == 0) it.focusRequester(first) else it },
                     progress = movieProgress[m.id]?.takeUnless { it.finished }?.fraction,
                     subtitle = Sagas.yearFromName(m.name)?.toString(),
@@ -1078,13 +1132,13 @@ private fun BoxScope.LiveLogoBackdrop(logo: String?) {
 
 /** Bandeau « nouvelle version disponible sur l'autre TV » (mise à jour par le réseau local). */
 @Composable
-private fun UpdateBanner() {
+private fun UpdateBanner(top: Boolean = false) {
     val ctx = LocalContext.current
     val info by com.fluxfr.tv.data.Updater.available.collectAsState()
     val state by com.fluxfr.tv.data.Updater.state.collectAsState()
     val u = info ?: return
     Row(
-        Modifier.padding(start = screenPadStart(), bottom = 6.dp)
+        Modifier.padding(start = screenPadStart(), top = if (top) 18.dp else 0.dp, bottom = 6.dp)
             .background(Palette.Accent.copy(alpha = 0.18f), androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
             .padding(horizontal = 14.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,

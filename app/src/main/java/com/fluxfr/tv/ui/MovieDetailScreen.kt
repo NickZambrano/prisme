@@ -627,6 +627,7 @@ private fun MovieDetailContent(
  */
 @Composable
 private fun MovieRow(title: String, films: List<Movie>, current: Movie?, onOpenMovie: (Movie) -> Unit) {
+    val ctx = LocalContext.current
     // Tablette : vignettes plus grandes (titre sur 2 lignes) ; TV et téléphone inchangés.
     val cardWidth = if (!LocalIsTv.current && !rememberIsCompact()) 140.dp else 104.dp
     Column(Modifier.padding(bottom = 12.dp)) {
@@ -643,6 +644,16 @@ private fun MovieRow(title: String, films: List<Movie>, current: Movie?, onOpenM
                     PosterCard(
                         displayTitle(m.name), m.poster, m.quality,
                         onClick = { if (!isCurrent) onOpenMovie(m) },
+                        // Appui long : menu d'actions (pas sur le film affiché : la fiche a déjà ses boutons).
+                        menu = if (isCurrent) null else {
+                            {
+                                movieActions(
+                                    ctx, m, savedMovieProgress(ctx, m),
+                                    onInfo = { onOpenMovie(m) },
+                                    play = { mode -> PlayerSession.start(ctx, listOf(Playables.movie(m)), 0, mode) },
+                                )
+                            }
+                        },
                         width = cardWidth,
                         subtitle = if (isCurrent) "Ce film" else (DisplayTitle.year(m.name) ?: Sagas.yearFromName(m.name))?.toString(),
                     )

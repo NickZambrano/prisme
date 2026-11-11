@@ -93,6 +93,14 @@ fun SearchScreen(
 ) {
     val ctx = LocalContext.current
     val isTv = LocalIsTv.current
+    // Menu d'un film (appui long) : la position enregistrée est lue à l'ouverture du menu (une seule ligne).
+    fun searchMovieMenu(m: Movie): () -> List<CardAction> = {
+        movieActions(
+            ctx, m, savedMovieProgress(ctx, m),
+            onInfo = { onOpenMovie(m) },
+            play = { mode -> PlayerSession.start(ctx, listOf(Playables.movie(m)), 0, mode) },
+        )
+    }
     var query by rememberSaveable { mutableStateOf("") }
     var debounced by remember { mutableStateOf(query) }
     val isCompactWidth = rememberIsCompact()
@@ -363,7 +371,7 @@ fun SearchScreen(
                                 val m = movies[i]
                                 GridPosterCard(
                                     m.name, m.poster, m.quality, onClick = { onOpenMovie(m) },
-                                    onLongClick = { PlayerSession.start(ctx, listOf(Playables.movie(m)), 0) },
+                                    menu = searchMovieMenu(m),
                                 )
                             }
                         }
@@ -371,7 +379,10 @@ fun SearchScreen(
                             header("series", "Séries", series.size)
                             items(series.size, key = { "s-${series[it].id}" }) { i ->
                                 val s = series[i]
-                                GridPosterCard(s.name, s.poster, s.quality, onClick = { onOpenSeries(s) })
+                                GridPosterCard(
+                                    s.name, s.poster, s.quality, onClick = { onOpenSeries(s) },
+                                    menu = { seriesActions(ctx, s, onOpen = { onOpenSeries(s) }) },
+                                )
                             }
                         }
                         if (channels.isNotEmpty()) {
@@ -398,7 +409,7 @@ fun SearchScreen(
                             displayTitle(m.name), m.poster, m.quality,
                             modifier = if (i == 0) Modifier.focusRequester(firstResult) else Modifier,
                             onClick = { onOpenMovie(m) },
-                            onLongClick = { PlayerSession.start(ctx, listOf(Playables.movie(m)), 0) },
+                            menu = searchMovieMenu(m),
                             subtitle = (VodMeta.get(VodMeta.movieKey(m.id))?.year ?: DisplayTitle.year(m.name))?.toString(),
                         )
                     }
@@ -407,6 +418,7 @@ fun SearchScreen(
                             displayTitle(s.name), s.poster, s.quality,
                             modifier = if (i == 0 && movies.isEmpty()) Modifier.focusRequester(firstResult) else Modifier,
                             onClick = { onOpenSeries(s) },
+                            menu = { seriesActions(ctx, s, onOpen = { onOpenSeries(s) }) },
                             subtitle = (VodMeta.get(VodMeta.seriesKey(s.id))?.year ?: DisplayTitle.year(s.name))?.toString(),
                         )
                     }

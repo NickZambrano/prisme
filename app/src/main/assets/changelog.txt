@@ -1,6 +1,11 @@
 # Nouveautés de Prisme : la version la plus récente en premier.
 # « ## <version> » ouvre une version ; chaque ligne « - » est une nouveauté.
 
+## 3.5.2
+- Appui long sur un film ou une série : petit menu d’actions (reprendre, lire depuis le début, infos, Ma liste, retirer de « Continuer à regarder »)
+- Bandeau de mise à jour tout en haut de l’accueil
+- Les mises à jour sont aussi vérifiées en revenant dans Prisme (pas seulement au démarrage)
+
 ## 3.5.1
 - Matchs du jour : les chaînes « événement » (DAZN, Prime Video, Max…) sont reconnues, avec le match et l'heure
 - Chaînes de sport gardées même si leur nom n'indique pas la qualité ; les événements terminés disparaissent

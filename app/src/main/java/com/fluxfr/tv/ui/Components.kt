@@ -598,10 +598,17 @@ fun PosterCard(
      * sans année finale, préfixe de langue ni mentions techniques). false : affiché tel quel.
      */
     cleanTitle: Boolean = true,
+    /**
+     * Menu d'actions (appui long) : quand non nul, l'appui long ouvre un petit menu ancré à la vignette
+     * ([CardMenuPopup]) au lieu d'appeler [onLongClick]. Liste calculée à l'ouverture.
+     */
+    menu: (() -> List<CardAction>)? = null,
 ) {
     var focused by remember { mutableStateOf(false) }
     val shownTitle = if (cleanTitle) remember(title) { HomeRows.shownTitle(title) } else title
     val isTv = LocalIsTv.current
+    val menuState = if (menu != null) rememberCardMenuState() else null
+    val longClick: (() -> Unit)? = if (menuState != null) remember(menuState, isTv) { { menuState.requestOpen(isTv) } } else onLongClick
     // Tactile en largeur non compacte (tablette, paysage) : vignettes plus grandes, titre sur 2 lignes.
     val touchWide = !isTv && !rememberIsCompact()
     val cardWidth = when {
@@ -613,7 +620,7 @@ fun PosterCard(
     Column(
         modifier.revealOnFocus().width(cardWidth)
             // Tactile : un seul nœud d'accessibilité, lu avec le titre (TalkBack).
-            .then(if (isTv) Modifier else Modifier.touchCardSemantics(shownTitle, subtitle, onClick, onLongClick))
+            .then(if (isTv) Modifier else Modifier.touchCardSemantics(shownTitle, subtitle, onClick, longClick))
     ) {
         FocusSurface(
             onClick,
@@ -622,8 +629,9 @@ fun PosterCard(
                     val was = focused
                     focused = it.isFocused
                     if (it.isFocused) onFocus?.invoke() else if (was) onBlur?.invoke()
-                },
-            onLongClick = onLongClick,
+                }
+                .cardMenuAnchor(menuState),
+            onLongClick = longClick,
             focusedScale = 1.08f,
         ) {
             Artwork(image, shownTitle, ContentScale.Crop)
@@ -641,6 +649,7 @@ fun PosterCard(
             CardTitle(shownTitle, focused)
         }
         if (subtitle != null) Text(subtitle, maxLines = 1, fontSize = 11.sp, color = Palette.Faint)
+        if (menuState != null && menu != null) CardMenuPopup(menuState, shownTitle, menu)
     }
 }
 

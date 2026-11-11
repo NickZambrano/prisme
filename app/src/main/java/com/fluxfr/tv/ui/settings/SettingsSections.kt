@@ -792,7 +792,7 @@ private fun AboutSection() {
         Text("Version ${Updater.currentVersionName}", fontSize = 13.sp, color = Palette.Dim)
     }
     SectionLabel("Raccourcis")
-    SettingsRow("Continuer à regarder", value = "Appui long : retirer")
+    SettingsRow("Films et séries", value = "Appui long : menu d'actions")
     // Raccourcis réels du lecteur (▲▼ ouvre la liste des chaînes ; ◀▶ avance / recule dans le direct).
     if (LocalSettingsUi.current.isTv) {
         SettingsRow("Changer de chaîne", value = "CH+ / CH− · ▲▼ : liste")
