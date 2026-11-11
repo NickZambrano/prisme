@@ -98,22 +98,39 @@ object RemoteUpdate {
         }
     }
 
-    /** Vérifie la version publiée ; si elle est plus récente, la télécharge et la contrôle (sans installer). */
-    suspend fun checkAndPrepare(ctx: Context) {
+    enum class Outcome { UP_TO_DATE, AVAILABLE, FAILED }
+
+    /**
+     * Vérifie la version publiée ; si elle est plus récente, l'annonce (bandeau de l'accueil), la télécharge et la
+     * contrôle, sans installer. Le téléchargement continue en arrière-plan : le résultat est connu tout de suite.
+     */
+    suspend fun checkAndPrepare(ctx: Context): Outcome {
         val app = ctx.applicationContext
-        val m = fetchManifest() ?: return
-        if (!isNewer(m, BuildConfig.VERSION_CODE, BuildConfig.FLAVOUR)) return
+        val m = runCatching { fetchManifest() }.getOrNull() ?: return Outcome.FAILED
+        if (!isNewer(m, BuildConfig.VERSION_CODE, BuildConfig.FLAVOUR)) return Outcome.UP_TO_DATE
         val info = UpdateInfo(m.versionCode, m.versionName, "Internet", m.apk, m.sha256)
         Updater.offer(info)
-        if (Updater.busy()) return
-        val file = File(app.filesDir, "remote-update.apk")
-        if (!(file.exists() && sha256(file) == m.sha256)) {
-            file.delete()
-            if (!Updater.downloadTo(info, file)) return
+        scope.launch { runCatching { prepare(app, info) } }
+        return Outcome.AVAILABLE
+    }
+
+    @Volatile private var preparing = false
+
+    private fun prepare(app: Context, info: UpdateInfo) {
+        if (preparing || Updater.busy() || readyFileFor(info) != null) return
+        preparing = true
+        try {
+            val file = File(app.filesDir, "remote-update.apk")
+            if (!(file.exists() && sha256(file) == info.sha256)) {
+                file.delete()
+                if (!Updater.downloadTo(info, file)) return
+            }
+            if (Updater.verify(app, file) != null) { file.delete(); return }
+            ready = file to info
+            if (!inForeground) installIfReady(app)
+        } finally {
+            preparing = false
         }
-        if (Updater.verify(app, file) != null) { file.delete(); return }
-        ready = file to info
-        if (!inForeground) installIfReady(app)
     }
 
     private fun installIfReady(ctx: Context) {

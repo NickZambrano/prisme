@@ -59,6 +59,14 @@ class Settings(ctx: Context) {
         get() = p.getBoolean("strictVod", false)
         set(v) = putShared("strictVod", v)
 
+    /**
+     * Films et séries « MULTI » dont la VF n'a pas pu être vérifiée (le fournisseur ne donne pas les langues
+     * audio) : affichés à part, dans « Multi-langues (VF non garantie) ». Activé par défaut (clé inversée).
+     */
+    var showUnverifiedMulti: Boolean
+        get() = !p.getBoolean("hideMulti", false)
+        set(v) = putShared("hideMulti", !v)
+
     /** Chaînes : accepter aussi celles sans mention de qualité. */
     var keepUnknownLive: Boolean
         get() = p.getBoolean("unknownLive", false)

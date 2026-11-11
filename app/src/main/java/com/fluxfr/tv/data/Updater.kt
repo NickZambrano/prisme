@@ -144,17 +144,29 @@ object Updater {
         }
     }
 
-    /** « Rechercher une mise à jour » : cherche les autres TV pendant ~4 s. */
+    /**
+     * « Rechercher une mise à jour » : sur Internet (version publique, [RemoteUpdate]) puis parmi les autres TV de la
+     * maison (~4 s).
+     */
     suspend fun check(ctx: Context) {
         if (_checking.value) return
         _checking.value = true
         _checkMessage.value = null
         try {
+            // Internet d'abord : une nouvelle version publiée apparaît dans le bandeau et se télécharge.
+            val online = if (RemoteUpdate.enabled) {
+                runCatching { RemoteUpdate.checkAndPrepare(ctx.applicationContext) }.fold(
+                    onSuccess = { it },
+                    onFailure = { RemoteUpdate.Outcome.FAILED },
+                )
+            } else null
             val peers = PrismeNode.discover(ctx.applicationContext)
             onPeers(ctx, peers)
             val same = peers.filter { Flavour.compatible(it.flavour, BuildConfig.FLAVOUR) }
             _checkMessage.value = when {
                 _available.value != null -> null
+                online == RemoteUpdate.Outcome.UP_TO_DATE -> "Prisme est à jour ($currentVersionName)"
+                online == RemoteUpdate.Outcome.FAILED -> "Impossible de vérifier les mises à jour sur Internet"
                 peers.isEmpty() -> "Aucune autre TV avec Prisme trouvée sur le réseau"
                 same.isEmpty() -> "Aucune autre TV avec le même type de Prisme"
                 else -> "Prisme est à jour (" + same.joinToString { it.device + " : " + it.versionName } + ")"

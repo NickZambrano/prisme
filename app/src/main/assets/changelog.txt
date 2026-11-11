@@ -1,0 +1,16 @@
+# Nouveautés de Prisme : la version la plus récente en premier.
+# « ## <version> » ouvre une version ; chaque ligne « - » est une nouveauté.
+
+## 3.5.1
+- Matchs du jour : les chaînes « événement » (DAZN, Prime Video, Max…) sont reconnues, avec le match et l'heure
+- Chaînes de sport gardées même si leur nom n'indique pas la qualité ; les événements terminés disparaissent
+- Films et séries multi-langues dans une catégorie à part « VF non garantie » (désactivable dans Réglages > Lecture)
+- « Rechercher une mise à jour » vérifie aussi sur Internet
+- Nouveautés affichées après chaque mise à jour (et dans Réglages > Mise à jour)
+
+## 3.5
+- Mise à jour automatique depuis Internet, jamais pendant une lecture
+- Onglet Fichiers (option) : vidéos de la TV, clés et disques USB, partages réseau (PC, NAS)
+- Navigation plus fluide entre les rangées, sans saut ; places réservées pour les rangées en chargement
+- « Pas pour moi » au bout des rangées « Parce que tu as regardé »
+- Connexion depuis le téléphone : message clair en cas d'identifiants refusés

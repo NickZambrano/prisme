@@ -304,6 +304,9 @@ object CatalogRepository {
         val report = if (BuildConfig.DEBUG) FilterReport() else null
         t.emit("Chargement du catalogue…", 0.04f, null)
         val multiCandidates = ArrayList<Movie>()
+        // Séries des catégories MULTI : les langues ne sont pas vérifiables (le fournisseur ne donne au mieux que
+        // la 1re piste audio d'un épisode) ; montrées à part si l'option l'autorise.
+        val multiSeries = ArrayList<Series>()
         VodMeta.load(ctx) // avant tout put : sinon le chargement écraserait les nouvelles valeurs
 
         // Seules les catégories utiles (françaises, MULTI ou sans pays) sont téléchargées, en parallèle :
@@ -458,9 +461,20 @@ object CatalogRepository {
                 val id = m["series_id"]
                 val french = name != null && id != null && f.isFrench(cat, name) && !f.isExcluded(cat, name)
                 report?.add("Séries", cat, french)
-                val q = if (french) f.vodQuality(name!!, cat) else Quality.UNKNOWN
+                val multi = !french && name != null && id != null &&
+                    ContentFilter.tokens(cat).contains("MULTI") && !f.isExcluded(cat, name)
+                val q = if (french || multi) f.vodQuality(name!!, cat) else Quality.UNKNOWN
                 val ok = french && f.acceptVod(q)
                 t.seen(2, ok)
+                if (multi && f.acceptVod(q)) {
+                    seriesMeta(id!!, m)
+                    synchronized(multiSeries) {
+                        multiSeries += Series(
+                            id, cleanName(name!!), MultiAudio.UNVERIFIED_CATEGORY, m["cover"]?.takeIf { it.isNotBlank() }, q,
+                            m["plot"], m["last_modified"]?.toLongOrNull() ?: 0L,
+                        )
+                    }
+                }
                 if (ok) seriesMeta(id!!, m)
                 if (ok) synchronized(out) {
                     out += Series(
@@ -482,9 +496,25 @@ object CatalogRepository {
         val audio = MultiAudio.load(ctx)
         val verified = multiCandidates.filter { audio[it.id] == MultiAudio.FRENCH }
         pendingAudioCheck = multiCandidates.filter { audio[it.id] == null }
+        // VF impossible à vérifier (langues non fournies, ou pas encore vérifiées) : catégorie à part, si l'option
+        // est activée ; jamais un titre déjà présent en version française. Une VO avérée (OTHER) reste masquée.
+        val unverifiedMovies = if (!s.showUnverifiedMulti) emptyList() else {
+            val known = (movies + verified).mapTo(HashSet()) { dedupKey(it.name) }
+            multiCandidates.filter { audio[it.id] != MultiAudio.FRENCH && audio[it.id] != MultiAudio.OTHER }
+                .filter { known.add(dedupKey(it.name)) }
+                .map { it.copy(category = MultiAudio.UNVERIFIED_CATEGORY) }
+        }
+        val unverifiedSeries = if (!s.showUnverifiedMulti) emptyList() else {
+            val known = series.mapTo(HashSet()) { dedupKey(it.name) }
+            multiSeries.filter { known.add(dedupKey(it.name)) }
+        }
         assemble(
-            f, rawLive, movies + verified, series, liveOrder,
-            if (verified.isEmpty()) movieOrder else movieOrder + MultiAudio.CATEGORY, seriesOrder,
+            f, rawLive, movies + verified + unverifiedMovies, series + unverifiedSeries, liveOrder,
+            movieOrder + listOfNotNull(
+                MultiAudio.CATEGORY.takeIf { verified.isNotEmpty() },
+                MultiAudio.UNVERIFIED_CATEGORY.takeIf { unverifiedMovies.isNotEmpty() },
+            ),
+            seriesOrder + listOfNotNull(MultiAudio.UNVERIFIED_CATEGORY.takeIf { unverifiedSeries.isNotEmpty() }),
         )
     }
 
@@ -680,10 +710,13 @@ object CatalogRepository {
     ): Catalog {
         // Chaînes : une seule entrée par chaîne (sa version préférée), les autres deviennent des secours.
         // Par défaut FHD > HD > 4K : chez beaucoup de fournisseurs, la "4K" n'est pas le vrai flux.
+        val now = System.currentTimeMillis()
         val channels = rawLive.groupBy { dedupKey(it.name) }.values.mapNotNull { variants ->
             val sorted = variants.sortedByDescending { f.liveRank(it.q) }
             val best = sorted.first()
-            if (!f.acceptLive(best.q)) return@mapNotNull null
+            if (!f.acceptLive(best.q, best.name)) return@mapNotNull null
+            // Chaîne d'un événement terminé depuis longtemps (PPV d'il y a des semaines) : inutile.
+            if (EventChannels.isStale(best.name, now)) return@mapNotNull null
             val sources = sorted.map { Source(it.url, it.q) } + listOfNotNull(best.hlsUrl?.let { Source(it, best.q) })
             Channel(
                 best.id, best.name, best.cat,

@@ -36,7 +36,7 @@ object SettingsSync {
 
     /** Clés des préférences partagées (même nom dans l'instantané et dans les préférences « fluxfr »). */
     private val SHARED_STRINGS = listOf("fr", "exclude", "ua")
-    private val SHARED_BOOLS = listOf("strictVod", "unknownLive", "uhdLive", "askProfileAtStart")
+    private val SHARED_BOOLS = listOf("strictVod", "unknownLive", "uhdLive", "askProfileAtStart", "hideMulti")
     private val BOOL_DEFAULTS = mapOf("askProfileAtStart" to true)
 
     data class Domain(val updatedAt: Long, val data: Any?)
@@ -268,7 +268,7 @@ object SettingsSync {
     }
 
     /** Préférences partagées qui changent le contenu du catalogue (un changement impose un rechargement). */
-    internal val CATALOG_KEYS = setOf("fr", "exclude", "strictVod", "unknownLive", "uhdLive")
+    internal val CATALOG_KEYS = setOf("fr", "exclude", "strictVod", "unknownLive", "uhdLive", "hideMulti")
 
     private fun prefsValues(p: android.content.SharedPreferences): Map<String, Any?> =
         (SHARED_STRINGS + SHARED_BOOLS).associateWith { p.all[it] }

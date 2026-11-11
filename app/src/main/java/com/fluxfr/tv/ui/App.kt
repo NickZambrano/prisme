@@ -757,6 +757,22 @@ fun MainScreen(
             }
         }
 
+        // ---- Nouveautés : une seule fois, au premier démarrage après une mise à jour (après le choix du profil).
+        var whatsNew by remember { mutableStateOf<List<com.fluxfr.tv.data.Changelog.Entry>>(emptyList()) }
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            kotlinx.coroutines.delay(1_500) // l'accueil d'abord
+            whatsNew = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                runCatching { com.fluxfr.tv.data.Changelog.pending(ctxCat) }.getOrDefault(emptyList())
+            }
+        }
+        if (whatsNew.isNotEmpty() && !profileDialog) {
+            WhatsNewDialog(whatsNew, "Nouveautés de Prisme ${com.fluxfr.tv.BuildConfig.VERSION_NAME}") {
+                com.fluxfr.tv.data.Changelog.markSeen(ctxCat)
+                whatsNew = emptyList()
+                runCatching { sectionFocus.requestFocus() }
+            }
+        }
+
         // ---- Choix du profil (par-dessus tout, focus piégé)
         if (profileDialog) {
             ModalPanel(if (Profiles.list.value.size > 3) 860.dp else 560.dp) {

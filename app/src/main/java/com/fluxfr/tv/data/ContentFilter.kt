@@ -67,8 +67,18 @@ class ContentFilter(
     fun vodQuality(name: String, category: String): Quality =
         if (isLowRelease(name) || isLowRelease(category)) Quality.LOW else itemQuality(name, category)
 
-    /** Une chaîne est affichée si sa MEILLEURE version est au moins HD. */
-    fun acceptLive(best: Quality) = best.rank >= 1 || (best == Quality.UNKNOWN && keepUnknownLive)
+    /**
+     * Une chaîne est affichée si sa MEILLEURE version est au moins HD. Sans mention de qualité : gardée si
+     * l'option est activée, et toujours pour les chaînes « événement » (match dans le nom, jamais de qualité
+     * indiquée) et les chaînes de sport (« CANAL+ FORMULA 1 ») — sauf les créneaux d'événement vides.
+     */
+    fun acceptLive(best: Quality, name: String = ""): Boolean {
+        if (best.rank >= 1) return true
+        if (best != Quality.UNKNOWN) return false
+        if (keepUnknownLive) return true
+        if (name.isEmpty() || EventChannels.isEmptySlot(name)) return false
+        return EventChannels.isEvent(name) || MatchDetector.isSportsChannelName(name)
+    }
 
     /**
      * Ordre de préférence des versions d'une même chaîne. Par défaut FHD > HD > 4K > inconnue > SD :

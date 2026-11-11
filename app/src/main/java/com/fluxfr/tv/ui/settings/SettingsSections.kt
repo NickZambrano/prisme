@@ -395,6 +395,7 @@ private fun PlaybackSection() {
     var uhd by remember(synced) { mutableStateOf(s.preferUhdLive) }
     var strict by remember(synced) { mutableStateOf(s.strictVodQuality) }
     var unknown by remember(synced) { mutableStateOf(s.keepUnknownLive) }
+    var multi by remember(synced) { mutableStateOf(s.showUnverifiedMulti) }
     val ua = remember(synced, ui.tick) { s.userAgent }
     var historyCleared by remember { mutableStateOf(false) }
     var filesTab by remember { mutableStateOf(s.filesTab) }
@@ -428,6 +429,12 @@ private fun PlaybackSection() {
         description = if (ui.isTv) "Les garder aussi dans la liste"
         else "Garde aussi les chaînes dont le nom n'indique ni HD, ni FHD, ni 4K",
         onClick = { unknown = !unknown; s.keepUnknownLive = unknown; ui.markCatalogChanged() },
+    )
+    SettingsRow(
+        "Films et séries multi-langues", checked = multi,
+        description = if (ui.isTv) "Catégorie à part « VF non garantie »"
+        else "Titres MULTI dont la VF n'a pas pu être vérifiée, dans une catégorie à part « VF non garantie »",
+        onClick = { multi = !multi; s.showUnverifiedMulti = multi; ui.markCatalogChanged() },
     )
     SectionLabel("Fichiers")
     SettingsRow(
@@ -725,12 +732,24 @@ private fun UpdateSection() {
     }
 
     SettingsRow("Version installée", value = Updater.currentVersionName)
+    SettingsRow(
+        "Nouveautés", icon = FluxIcons.Info,
+        description = "Ce qui a changé dans les dernières versions",
+        onClick = {
+            val entries = com.fluxfr.tv.data.Changelog.all(ctx).take(5)
+            ui.open { com.fluxfr.tv.ui.WhatsNewDialog(entries, "Nouveautés de Prisme", onClose = ui::close) }
+        },
+    )
     val info = available
     if (info != null) {
         SettingsRow(
             "Installer la version ${info.versionName}", icon = FluxIcons.Check, accent = true,
             value = info.device,
-            description = if (ui.isTv) "Transmise par une TV de la maison" else "Transmise par un autre appareil de la maison",
+            description = when {
+                info.sha256 != null -> "Publiée sur Internet"
+                ui.isTv -> "Transmise par une TV de la maison"
+                else -> "Transmise par un autre appareil de la maison"
+            },
             onClick = { Updater.installAsync(ctx, info) },
         )
     }
@@ -746,7 +765,11 @@ private fun UpdateSection() {
     SettingsRow(
         "Rechercher une mise à jour", icon = FluxIcons.Refresh,
         value = if (checking) "Recherche…" else null,
-        description = if (ui.isTv) "Auprès des autres TV du réseau local" else "Auprès de tes autres appareils du réseau local",
+        description = when {
+            com.fluxfr.tv.data.RemoteUpdate.enabled -> "Sur Internet et auprès des autres appareils de la maison"
+            ui.isTv -> "Auprès des autres TV du réseau local"
+            else -> "Auprès de tes autres appareils du réseau local"
+        },
         onClick = { if (!checking) Updater.checkAsync(ctx) },
     )
     if (info == null && !checking) checkMsg?.let { StatusLine(it) }

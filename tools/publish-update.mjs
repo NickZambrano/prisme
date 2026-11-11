@@ -74,7 +74,22 @@ const manifest = {
 const manifestOut = join(dir, "prisme-public.json");
 writeFileSync(manifestOut, JSON.stringify(manifest, null, 2));
 
-const body = (notes || `Prisme ${versionName}`) +
+/** Nouveautés de cette version, lues dans le journal livré avec l'appli (app/src/main/assets/changelog.txt). */
+function changelogNotes(version) {
+  const txt = readFileSync(join(ROOT, "app", "src", "main", "assets", "changelog.txt"), "utf8");
+  const lines = txt.split(/\r?\n/);
+  const start = lines.findIndex((l) => l.trim() === "## " + version);
+  if (start < 0) return null;
+  const items = [];
+  for (const l of lines.slice(start + 1)) {
+    if (l.startsWith("## ")) break;
+    if (l.trim().startsWith("- ")) items.push(l.trim());
+  }
+  return items.length ? "## Nouveautés\n\n" + items.join("\n") : null;
+}
+const fromChangelog = changelogNotes(versionName);
+if (!notes && !fromChangelog) die(`aucune entrée « ## ${versionName} » dans changelog.txt : ajoute les nouveautés avant de publier`);
+const body = (notes || fromChangelog) +
   "\n\nInstallation : télécharger Prisme.apk sur la TV (ou l'envoyer depuis le téléphone). " +
   "Les versions suivantes s'installent ensuite toutes seules.";
 if (replace) {

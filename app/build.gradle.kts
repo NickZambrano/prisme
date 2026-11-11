@@ -20,8 +20,8 @@ android {
         applicationId = "com.fluxfr.tv"
         minSdk = 21
         targetSdk = 35
-        versionCode = 29
-        versionName = "3.5"
+        versionCode = 30
+        versionName = "3.5.1"
         // Version publique (gradle -Ppublic) : aucun identifiant IPTV intégré, chacun configure le sien.
         // Version PUBLIQUE par défaut (aucun identifiant IPTV intégré). L'ancienne version personnelle, avec les
         // identifiants de secrets.properties, n'est plus produite qu'avec -Ppersonal (ne jamais la publier).

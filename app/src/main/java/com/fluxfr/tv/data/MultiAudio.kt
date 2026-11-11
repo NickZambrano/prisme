@@ -16,6 +16,9 @@ object MultiAudio {
     /** Catégorie sous laquelle apparaissent les films MULTI dont la VF a été vérifiée. */
     const val CATEGORY = "Multi-langues (VF vérifiée)"
 
+    /** Films et séries MULTI dont la VF n'a pas pu être vérifiée ([Settings.showUnverifiedMulti]). */
+    const val UNVERIFIED_CATEGORY = "Multi-langues (VF non garantie)"
+
     private const val NO_INFO_KEY = "__noinfo"
     private const val NO_INFO_RETRY_MS = 7L * 24 * 60 * 60 * 1000
 

@@ -222,6 +222,7 @@ object MatchDetector {
     private val SPORT_CHANNEL_KEYS = listOf(
         "canalsport", "canalfoot", "canalplussport", "canalplusfoot", "beinsport", "rmcsport", "eurosport",
         "primevideo", "ligue1", "dazn", "lequipe", "infosport", "golfplus", "automoto", "sportenfrance",
+        "formula1", "formule1", "premierleague", "motogp",
         "canalplus", "canal",
     )
 
@@ -302,9 +303,28 @@ object Matches {
                 }
             }.awaitAll().flatten()
         }
-        val result = dedupe(found).sortedWith(compareBy({ !it.isLive(now) }, { it.startMs }))
+        val result = dedupe(found + fromEventChannels(catalog, now)).sortedWith(compareBy({ !it.isLive(now) }, { it.startMs }))
         cache = Triple(catalog.fetchedAt, now, result)
         result
+    }
+
+    /**
+     * Matchs lus dans le NOM des chaînes « événement » ([EventChannels] : DAZN, Prime Video, Max…), qui n'ont pas
+     * de guide : en cours (commencés depuis moins de 3 h) ou dans les prochaines 24 h.
+     */
+    fun fromEventChannels(catalog: Catalog, now: Long): List<Match> {
+        val horizon = now + 24 * 3600_000L
+        return catalog.unfiltered.channels.mapNotNull { ch ->
+            val e = EventChannels.parse(ch.name, now) ?: return@mapNotNull null
+            val end = e.startMs + EventChannels.DURATION_MS
+            if (end <= now || e.startMs >= horizon) return@mapNotNull null
+            val guess = MatchDetector.detect(e.title, e.competition, true)
+            Match(
+                title = e.title,
+                competition = guess?.competition?.takeIf { it != "Match" } ?: e.competition ?: guess?.competition ?: "Sport",
+                startMs = e.startMs, endMs = end, channel = ch,
+            )
+        }
     }
 
     /** Même match sur plusieurs chaînes : on garde la première (ordre des candidates = TNT, puis HD). */
