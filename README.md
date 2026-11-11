@@ -7,7 +7,7 @@ Aucun abonnement n'est fourni : Prisme se connecte au compte IPTV (Xtream Codes 
 
 ## Installer
 
-1. Télécharger **Prisme-public.apk** depuis la [dernière version](../../releases/latest).
+1. Télécharger **Prisme.apk** depuis la [dernière version](../../releases/latest).
 2. L'installer sur la TV (par exemple avec l'application « Downloader », ou en l'envoyant depuis un téléphone).
 3. Au premier lancement, saisir son abonnement directement sur la TV ou depuis son téléphone (QR code).
 
