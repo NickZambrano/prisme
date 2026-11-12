@@ -30,6 +30,8 @@ jamais pendant une lecture).
 ## Compiler
 
 Prérequis : JDK 17 et SDK Android (le script `build-apk.sh` les cherche dans `~/.androidtv-build`).
+Guide complet : [docs/SETUP.md](docs/SETUP.md) (environnement), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (code),
+[docs/RELEASE.md](docs/RELEASE.md) (sortir une version).
 
 ```bash
 cp secrets.properties.example secrets.properties   # puis remplir les clés
